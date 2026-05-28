@@ -1,0 +1,156 @@
+version: '3.8'
+
+services:
+
+  # =========================================================
+  # 1. FRONTEND REVERSE PROXY & API GATEWAY
+  # =========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zenithcart-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - PRODUCT_SERVICE_URL=http://product-catalog:8001
+      - CART_SERVICE_URL=http://cart-service:8002
+      - ORDER_SERVICE_URL=http://order-service:8003
+    depends_on:
+      product-catalog:
+        condition: service_healthy
+      cart-service:
+        condition: service_healthy
+      order-service:
+        condition: service_healthy
+    networks:
+      - zenithnet
+    restart: always
+
+  # =========================================================
+  # 2. PRODUCT CATALOG SERVICE (FastAPI)
+  # =========================================================
+  product-catalog:
+    build:
+      context: ./product-catalog
+      dockerfile: Dockerfile
+    container_name: zenithcart-product-catalog
+    environment:
+      - MONGO_URI=mongodb://catalog-db:27017
+      - ENV=production
+    depends_on:
+      catalog-db:
+        condition: service_healthy
+    networks:
+      - zenithnet
+    restart: always
+
+  # =========================================================
+  # 3. CATALOG STORAGE ENGINE (MongoDB)
+  # =========================================================
+  catalog-db:
+    image: mongo:6.0
+    container_name: zenithcart-catalog-db
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - zenithnet
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: always
+
+  # =========================================================
+  # 4. CART CACHE SERVICE (Node.js/Express)
+  # =========================================================
+  cart-service:
+    build:
+      context: ./cart
+      dockerfile: Dockerfile
+    container_name: zenithcart-cart-service
+    environment:
+      - PORT=8002
+      - REDIS_URL=redis://cart-cache:6379
+    depends_on:
+      cart-cache:
+        condition: service_healthy
+    networks:
+      - zenithnet
+    restart: always
+
+  # =========================================================
+  # 5. CART DATA CACHE (Redis)
+  # =========================================================
+  cart-cache:
+    image: redis:7-alpine
+    container_name: zenithcart-cart-cache
+    networks:
+      - zenithnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: always
+
+  # =========================================================
+  # 6. ORDER PROCESSING SERVICE (Go)
+  # =========================================================
+  order-service:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    container_name: zenithcart-order-service
+    environment:
+      - PORT=8003
+      - POSTGRES_HOST=order-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=orders_db
+    depends_on:
+      order-db:
+        condition: service_healthy
+    networks:
+      - zenithnet
+    restart: always
+
+  # =========================================================
+  # 7. ORDER PERSISTENT DATABASE (PostgreSQL)
+  # =========================================================
+  order-db:
+    image: postgres:15-alpine
+    container_name: zenithcart-order-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=orders_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - zenithnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d orders_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: always
+
+# =========================================================
+# VOLUMES AND NETWORKS SPECIFICATIONS
+# =========================================================
+volumes:
+  mongo-data:
+    driver: local
+  postgres-data:
+    driver: local
+
+networks:
+  zenithnet:
+    driver: bridge

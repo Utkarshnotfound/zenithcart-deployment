@@ -1,0 +1,127 @@
+name: ZenithCart DevOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+
+  # =========================================================
+  # JOB 1: LINTING AND CODE TESTING
+  # =========================================================
+  test-microservices:
+    name: Lint & Test Services
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # --- PYTHON PRODUCT CATALOG TESTS ---
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r product-catalog/requirements.txt
+
+    - name: Run Pytest (Product Catalog API)
+      run: |
+        cd product-catalog
+        pytest -v
+
+    # --- NODE.JS CART SERVICE TESTS ---
+    - name: Set up Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: cart/package-lock.json
+
+    - name: Install Cart Service Dependencies
+      run: |
+        cd cart
+        # Generate lockfile if it doesn't exist, otherwise install
+        if [ ! -f package-lock.json ]; then npm install; else npm ci; fi
+
+    - name: Run Cart Service Unit Tests
+      run: |
+        cd cart
+        npm test
+
+    # --- GO ORDER PROCESSING TESTS ---
+    - name: Set up Go 1.20
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+        cache-dependency-path: order/go.mod
+
+    - name: Run Go Unit Tests (Order Processing API)
+      run: |
+        cd order
+        go test -v ./...
+
+  # =========================================================
+  # JOB 2: DOCKER CONTAINER IMAGE COMPILATION & VERIFICATION
+  # =========================================================
+  docker-build-verify:
+    name: Build & Verify Containers
+    needs: test-microservices
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    # --- BUILD FRONTEND CONTAINER ---
+    - name: Build Frontend Image (Mock/Dry Run)
+      uses: docker/build-push-action@v4
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: false
+        tags: zenithcart/frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # --- BUILD PRODUCT CATALOG CONTAINER ---
+    - name: Build Product Catalog Image (Mock/Dry Run)
+      uses: docker/build-push-action@v4
+      with:
+        context: ./product-catalog
+        file: ./product-catalog/Dockerfile
+        push: false
+        tags: zenithcart/product-catalog:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # --- BUILD CART SERVICE CONTAINER ---
+    - name: Build Cart Service Image (Mock/Dry Run)
+      uses: docker/build-push-action@v4
+      with:
+        context: ./cart
+        file: ./cart/Dockerfile
+        push: false
+        tags: zenithcart/cart-service:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # --- BUILD ORDER SERVICE CONTAINER ---
+    - name: Build Order Service Image (Mock/Dry Run)
+      uses: docker/build-push-action@v4
+      with:
+        context: ./order
+        file: ./order/Dockerfile
+        push: false
+        tags: zenithcart/order-service:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

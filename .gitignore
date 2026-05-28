@@ -1,0 +1,44 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.svelte-kit/
+.next/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Go
+bin/
+order/order-service
+order-service
+
+# Local Datastore Volumes (to avoid pushing local DB data)
+data/
+mongo-data/
+postgres-data/
+pg-data/
+redis-data/
+*.db
+*.sqlite
+
+# Environment Files
+.env
+.env.local
+.env.*.local
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+Desktop.ini

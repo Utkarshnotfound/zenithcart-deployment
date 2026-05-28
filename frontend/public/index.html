@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZenithCart - DevOps Microservices E-Commerce Showcase</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- Premium Header & Gateway Navigation -->
+  <header class="glass glow-border">
+    <div class="logo-container">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <span class="glow-text-primary">Zenith</span><span class="glow-text-secondary" style="color: var(--secondary);">Cart</span>
+      </div>
+    </div>
+    <div class="user-controls">
+      <button class="cart-icon-btn" onclick="scrollToCart()">
+        🛒 Cart <span class="cart-count" id="header-cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Application Body Grid -->
+  <main class="app-container">
+    
+    <!-- Products Dashboard Area -->
+    <section class="products-section">
+      <div class="products-title-container">
+        <h2><span class="glow-text-primary">Curated Storefront</span></h2>
+        <span style="font-size: 13px; color: var(--primary); font-weight: 600; background: rgba(0, 242, 254, 0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--panel-border-hover);">
+          🟢 Product Catalog Service Active (FastAPI)
+        </span>
+      </div>
+      
+      <!-- Loaded Dynamically via app.js -->
+      <div class="products-grid" id="products-grid">
+        <div style="grid-column: 1/-1; text-align: center; padding: 50px 0; color: var(--text-muted);">
+          <div class="loading-spinner"></div>
+          <p style="margin-top: 10px;">Loading product database catalog...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cart Cache Sidebar -->
+    <aside class="cart-panel glass" id="cart-sidebar">
+      <div class="cart-title">
+        <span>Shopping Cart</span>
+        <span style="font-size: 11px; color: #d15eff; background: rgba(189, 0, 255, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(189, 0, 255, 0.2);">
+          ⚡ Cart Cache (Redis)
+        </span>
+      </div>
+
+      <!-- Loaded Dynamically -->
+      <div class="cart-items-container" id="cart-items-list">
+        <div class="empty-cart-state">
+          Your cart cache is empty.<br>Add some awesome gear to get started!
+        </div>
+      </div>
+
+      <!-- Cart Calculations -->
+      <div class="cart-summary">
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">$0.00</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span style="color: var(--success); font-weight: 600;">FREE</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <span class="glow-text-primary" id="cart-total">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Checkout / Order Gateway -->
+      <form class="checkout-form" id="checkout-form" onsubmit="handleCheckout(event)">
+        <div class="form-group">
+          <label for="user-email">Email Address</label>
+          <input type="email" id="user-email" class="form-input" placeholder="engineering@devops.com" required>
+        </div>
+        <div class="form-group">
+          <label for="shipping-address">Delivery Address</label>
+          <input type="text" id="shipping-address" class="form-input" placeholder="101 Container Way, Dock 4" required>
+        </div>
+        <button type="submit" class="checkout-btn" id="checkout-btn" disabled>
+          🚀 Dispatch Microservices Order
+        </button>
+      </form>
+    </aside>
+
+    <!-- PostgreSQL Order History Dashboard -->
+    <section class="order-history-section glass">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 class="order-history-title"><span class="glow-text-secondary">Transactional Order History</span></h3>
+        <span style="font-size: 13px; color: #ffb700; font-weight: 600; background: rgba(255, 183, 0, 0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255, 183, 0, 0.2);">
+          🐘 PostgreSQL Order Service Active (Golang)
+        </span>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer Email</th>
+              <th>Shipping Address</th>
+              <th>Items Purchased</th>
+              <th>Total Bill</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody id="orders-table-body">
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 25px 0;">
+                No orders recorded in PostgreSQL yet. Place your first order above!
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notifications container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Dynamic Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
