@@ -7,8 +7,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm ci --only=production
-
+RUN npm install --only=production
 # =========================================================
 # Stage 2: Hardened runtime environment
 # =========================================================

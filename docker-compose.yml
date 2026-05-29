@@ -11,7 +11,7 @@ services:
       dockerfile: Dockerfile
     container_name: zenithcart-frontend
     ports:
-      - "8080:8080"
+      - "8085:8080"
     environment:
       - PORT=8080
       - PRODUCT_SERVICE_URL=http://product-catalog:8001

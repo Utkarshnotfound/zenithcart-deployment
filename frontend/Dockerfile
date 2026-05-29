@@ -8,8 +8,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Clean dependency installation for production
-RUN npm ci --only=production
-
+RUN npm install --only=production
 # =========================================================
 # Stage 2: Minimal runtime image
 # =========================================================

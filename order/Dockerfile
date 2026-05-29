@@ -1,7 +1,7 @@
 # =========================================================
 # Stage 1: Compile the statically linked Go binary
 # =========================================================
-FROM golang:1.20-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /usr/src/app
 
