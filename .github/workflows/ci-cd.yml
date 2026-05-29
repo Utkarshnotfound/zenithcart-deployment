@@ -42,7 +42,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: cart/package-lock.json
+        cache-dependency-path: 'cart/package-lock.json'
 
     - name: Install Cart Service Dependencies
       run: |
